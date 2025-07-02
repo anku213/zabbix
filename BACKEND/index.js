@@ -152,7 +152,6 @@ app.post('/api/zabbix/trigger/update', apiRoute(async (authToken, req) => {
 
 app.post('/api/zabbix/cpu-load-latest', apiRoute(async (authToken, req) => {
     const { hostid } = req.body;
-    console.log('Received hostid:', hostid);
     if (!hostid) {
         throw new Error('Missing required field: hostid');
     }
@@ -219,31 +218,29 @@ app.post('/api/zabbix/memory-utilization-latest', apiRoute(async (authToken, req
 // Endpoint for latest disk utilization
 app.post('/api/zabbix/disk-utilization-latest', apiRoute(async (authToken, req) => {
     const { hostid } = req.body;
-    console.log('Received hostid for disk utilization:', hostid);
-    
+
     if (!hostid) {
         throw new Error('Missing required field: hostid');
     }
     const items = await makeZabbixRequest(authToken, 'item.get', {
-        output: ['itemid'],
+        output: 'extend',
         hostids: hostid,
-        search: { key_: 'vfs.fs.get' }
+        search: { key_: "vfs.fs.dependent.size[/,pused]" }  
     });
-    console.log('Disk utilization items:', items);
+
+
     if (!items || items.length === 0) {
-        console.log('No disk utilization item found for the specified host');
         return [];
     }
     const itemid = items[0].itemid;
-    console.log('Using itemid for disk utilization:', itemid);
     const currentTime = Math.floor(Date.now() / 1000);
     return makeZabbixRequest(authToken, 'history.get', {
         output: 'extend',
         itemids: [itemid],
         history: 0, // Float data type for disk utilization
-        // time_from: currentTime - 60, // 60-second window
-        // time_till: currentTime,
-        limit: 1,
+        // // time_from: currentTime - 60, // 60-second window
+        // // time_till: currentTime,
+        // limit: 1,
         sortfield: 'clock',
         sortorder: 'DESC'
     });
@@ -252,5 +249,5 @@ app.post('/api/zabbix/disk-utilization-latest', apiRoute(async (authToken, req) 
 
 // Server startup
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.info(`Server running on http://localhost:${PORT}`);
 });
