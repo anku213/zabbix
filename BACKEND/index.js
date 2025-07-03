@@ -240,7 +240,7 @@ app.post('/api/zabbix/disk-utilization-latest', apiRoute(async (authToken, req) 
         history: 0, // Float data type for disk utilization
         // // time_from: currentTime - 60, // 60-second window
         // // time_till: currentTime,
-        // limit: 1,
+        limit: 1,
         sortfield: 'clock',
         sortorder: 'DESC'
     });
